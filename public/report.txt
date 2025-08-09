@@ -1,0 +1,286 @@
+<?php
+include 'header.php';
+require_once 'EntityManager.php';
+
+$conn = Database::getInstance();
+
+$surveyManager = new EntityManager('surveys');
+$surveys = $surveyManager->fetchActive();
+
+$participantMnagaer = new EntityManager('participants');
+$participants = $participantMnagaer->fetchAll();
+?>
+
+<script src="report.js"></script>
+
+<style>
+    .slider-box {
+        border: 1px solid #ccc;
+        /* Adds border around the selection box */
+        border-radius: 5px;
+        padding: 10px;
+        max-height: 200px;
+        /* Set the maximum height */
+        overflow-y: auto;
+        /* Enables scrolling when content exceeds height */
+        background-color: #f9f9f9;
+    }
+</style>
+
+
+<body class="hold-transition sidebar-mini">
+
+    <div class="wrapper">
+        <?php include 'navbar.php'; ?>
+        <?php include 'sidebar.php'; ?>
+
+        <div class="content-wrapper">
+            <section class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1>Report Management</h1>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content">
+                <div class="container">
+                    <!-- Survey List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Survey List</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-bordered" id="surveyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Organization</th>
+                                        <th>Amount</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="surveyBody"></tbody>
+                            </table>
+
+                            <div id="participantSection" class="mt-4" style="display:none;">
+                                <div id="participantTableBody"></div>
+                            </div>
+                            <!-- <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Client</th>
+                                        <th>Amount</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                    <tbody id="surveyList">
+                        <?php foreach ($surveys as $survey): ?>
+                            <tr class='survey-row' data-survey-id= <?php echo htmlspecialchars($survey['id']); ?>>
+                                <td><?php echo htmlspecialchars($survey['id']); ?></td>
+                                <td><?php echo htmlspecialchars($survey['title']); ?></td>
+                                <td><?php $stmt = $conn->prepare("SELECT * FROM clients WHERE id = ?");
+                                    $stmt->execute([$survey['client_id']]);
+                                    $client = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo htmlspecialchars($client['organization_name']); ?></td>
+                                <td><?php echo htmlspecialchars($survey['amount']); ?></td>
+                                <td><?php echo htmlspecialchars($survey['start_date']); ?></td>
+                                <td><?php echo htmlspecialchars($survey['end_date']); ?></td>
+                                <td>
+                                    <button class="btn btn-info view-survey-btn" data-id="<?php echo $survey['id']; ?>">View</button>
+                                    <button class="btn btn-warning edit-survey-btn" data-id="<?php echo $survey['id']; ?>">Edit</button>
+                                </td>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table> -->
+                        </div>
+                        <div>
+                            <div class="card card-danger">
+                                <div class="card-header">
+                                    <h3 class="card-title">Donut Chart</h3>
+
+                                    <div class="card-tools">
+                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chartjs-size-monitor">
+                                        <div class="chartjs-size-monitor-expand">
+                                            <div class=""></div>
+                                        </div>
+                                        <div class="chartjs-size-monitor-shrink">
+                                            <div class=""></div>
+                                        </div>
+                                    </div>
+                                    <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 420px;" width="525" height="312" class="chartjs-render-monitor"></canvas>
+                                </div>
+                                <!-- /.card-body -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+
+</body>
+
+
+
+<-------------------->
+$(document).on("click", ".view-report-btn", function () {
+    const surveyId = $(this).data("id");
+
+    $.ajax({
+        url: "manage_entity.php",
+        method: "POST",
+        data: { action: "get_survey_report", survey_id: surveyId },
+        dataType: "json",
+        success: function (response) {
+            if (response.success) {
+                const survey = response.survey;
+                const questions = response.questions;
+                const responses = response.responses;
+
+                $("#reportSurveyTitle").text(s
+
+   
+
+   <-------------------------------------------->
+
+   if ($action === 'fetch_survey_report' && isset($_POST['survey_id'])) {
+    $survey_id = $_POST['survey_id'];
+
+    try {
+        // Fetch survey and client details
+        $stmt = $conn->prepare("SELECT s.*, c.organization_name FROM surveys s JOIN clients c ON s.client_id = c.id WHERE s.id = ?");
+        $stmt->execute([$survey_id]);
+        $survey = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$survey) {
+            echo json_encode(['success' => false, 'message' => 'Survey not found']);
+            exit;
+        }
+
+        // Fetch number of completed participants
+        $stmt = $conn->prepare("SELECT COUNT(*) as completed FROM survey_participants WHERE survey_id = ? AND completed = 1");
+        $stmt->execute([$survey_id]);
+        $completed = $stmt->fetch(PDO::FETCH_ASSOC)['completed'];
+
+        // Fetch questions
+        $stmt = $conn->prepare("SELECT id, question_text FROM questions WHERE survey_id = ?");
+        $stmt->execute([$survey_id]);
+        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $charts = [];
+
+        foreach ($questions as $q) {
+            $question_id = $q['id'];
+            $question_text = $q['question_text'];
+
+            // Fetch answer options
+            $stmt = $conn->prepare("SELECT id, answer_text FROM answers WHERE question_id = ?");
+            $stmt->execute([$question_id]);
+            $answers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $data = [];
+
+            foreach ($answers as $a) {
+                $answer_id = $a['id'];
+                $answer_text = $a['answer_text'];
+
+                // Count responses
+                $stmt = $conn->prepare("SELECT COUNT(*) as count FROM responses WHERE question_id = ? AND FIND_IN_SET(?, answer_ids)");
+                $stmt->execute([$question_id, $answer_id]);
+                $count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+                $data[] = ['answer' => $answer_text, 'count' => (int)$count];
+            }
+
+            $charts[] = [
+                'question' => $question_text,
+                'options' => $data
+            ];
+        }
+
+        echo json_encode([
+            'success' => true,
+            'survey' => [
+                'title' => $survey['title'],
+                'organization_name' => $survey['organization_name'],
+                'amount' => $survey['amount'],
+                'completed_count' => $completed,
+            ],
+            'charts' => $charts
+        ]);
+        exit;
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        exit;
+    }
+}
+
+
+
+
+
+<------ manage entity----->
+try {
+                    // Survey details
+                    $stmt = $conn->prepare("SELECT s.*, c.organization_name FROM surveys s LEFT JOIN clients c ON s.client_id = c.id WHERE s.id = ?");
+                    $stmt->execute([$survey_id]);
+                    $survey = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$survey) {
+                        echo json_encode(['success' => false, 'message' => 'Survey not found']);
+                        exit;
+                    }
+
+                    // Count of completed participants
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM survey_participants WHERE survey_id = ? AND completed = 1");
+                    $stmt->execute([$survey_id]);
+                    $completed_count = $stmt->fetchColumn();
+
+                    // Questions
+                    $stmt = $conn->prepare("SELECT id, question_text FROM questions WHERE survey_id = ?");
+                    $stmt->execute([$survey_id]);
+                    $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($questions as &$q) {
+                        $stmt = $conn->prepare("SELECT a.id, a.answer_text, COUNT(r.answer_id) as response_count
+                                    FROM answers a
+                                    LEFT JOIN responses r ON a.id = r.answer_id
+                                    WHERE a.question_id = ?
+                                    GROUP BY a.id, a.answer_text");
+                        $stmt->execute([$q['id']]);
+                        $q['options'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    }
+
+                    echo json_encode([
+                        'success' => true,
+                        'report' => [
+                            'id' => $survey['id'],
+                            'title' => $survey['title'],
+                            'organization_name' => $survey['organization_name'],
+                            'amount' => $survey['amount'],
+                            'completed_count' => $completed_count,
+                            'questions' => $questions
+                        ]
+                    ]);
+                } catch (Exception $e) {
+                    echo json_encode(['success' => false, 'message' => 'Error generating report: ' . $e->getMessage()]);
+                }
